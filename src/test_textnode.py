@@ -2,7 +2,7 @@
 
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
 from htmlnode import HTMLNode, LeafNode
 
 
@@ -40,7 +40,7 @@ class TestTextNode(unittest.TestCase):
     def test_repr(self):
         node = TextNode("This is a text node", TextType.TEXT, "https://www.boot.dev")
         self.assertEqual(
-            "TextNode(This is a text node, text, https://www.boot.dev)", repr(node)
+            "TextNode(This is a text node, TextType.TEXT, https://www.boot.dev)", repr(node)
         )
 
 class TestTextNodeToHTMLNode(unittest.TestCase):
@@ -69,6 +69,43 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.value, "This is a link")
         self.assertEqual(html_node.props, {"href": node.url})
 
+class TestSplitNodes(unittest.TestCase):
+    def test_bold(self):
+        node = TextNode("This is **bold text** alright", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        expected_list = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold text", TextType.BOLD),
+            TextNode(" alright", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected_list)
+
+    def test_code(self):
+        node = TextNode("This is `code x = 100` alright", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        expected_list = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("code x = 100", TextType.CODE),
+            TextNode(" alright", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected_list)
+
+    # def test_italic_and_bold(self):
+    #     node = TextNode("This is *italic text* and **bolded stuff** alright", TextType.TEXT)
+    #     print(node.text.split("*"))
+    #     new_nodes = split_nodes_delimiter([node], "*", TextType.ITALIC)
+    #     new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
+    #     expected_list = [
+    #         TextNode("This is ", TextType.TEXT),
+    #         TextNode("italic text", TextType.ITALIC),
+    #         TextNode(" and ", TextType.TEXT),
+    #         TextNode("bolded stuff", TextType.BOLD),
+    #         TextNode(" alright", TextType.TEXT),
+    #     ]
+
+    #     self.assertListEqual(new_nodes, expected_list)
 
 if __name__ == "__main__":
     unittest.main()
