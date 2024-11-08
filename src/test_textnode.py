@@ -92,20 +92,33 @@ class TestSplitNodes(unittest.TestCase):
 
         self.assertListEqual(new_nodes, expected_list)
 
-    # def test_italic_and_bold(self):
-    #     node = TextNode("This is *italic text* and **bolded stuff** alright", TextType.TEXT)
-    #     print(node.text.split("*"))
-    #     new_nodes = split_nodes_delimiter([node], "*", TextType.ITALIC)
-    #     new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
-    #     expected_list = [
-    #         TextNode("This is ", TextType.TEXT),
-    #         TextNode("italic text", TextType.ITALIC),
-    #         TextNode(" and ", TextType.TEXT),
-    #         TextNode("bolded stuff", TextType.BOLD),
-    #         TextNode(" alright", TextType.TEXT),
-    #     ]
+    def test_italic_and_bold(self):
+        node = TextNode("This is *italic text* and **bolded stuff** alright", TextType.TEXT)
+        print(node.text.split("*"))
+        new_nodes = split_nodes_delimiter([node], "*", TextType.ITALIC)
+        new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
+        expected_list = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("italic text", TextType.ITALIC),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("bolded stuff", TextType.BOLD),
+            TextNode(" alright", TextType.TEXT),
+        ]
 
-    #     self.assertListEqual(new_nodes, expected_list)
+        self.assertListEqual(new_nodes, expected_list)
+
+    def test_delim_bold_and_italic(self):
+        node = TextNode("**bold** and *italic*", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+            ],
+            new_nodes,
+        )
 
 if __name__ == "__main__":
     unittest.main()

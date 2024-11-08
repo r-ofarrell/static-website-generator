@@ -71,6 +71,10 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
             new_nodes.extend(split_nodes)
     return new_nodes
 
-if __name__ == "__main__":
-    node = TextNode("I have *italic* and **bold** text", TextType.TEXT)
-    split_nodes_delimiter([node], "*", TextType.ITALIC)
+def extract_markdown_images(text: str) -> tuple:
+    image_markdown = re.findall(r"!\[([\w ]+)\]\((https:\/\/.*?\.[a-z]+)\)", text)
+    return image_markdown
+
+def extract_markdown_link(text: str) -> tuple:
+    link_markdown = re.findall(r"\[([\w ]+)\]\((https:\/\/.*?\.[a-z\/@]+)\)", text)
+    return link_markdown
