@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
+import re
 
 from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
 from htmlnode import HTMLNode, LeafNode
@@ -94,9 +95,9 @@ class TestSplitNodes(unittest.TestCase):
 
     def test_italic_and_bold(self):
         node = TextNode("This is *italic text* and **bolded stuff** alright", TextType.TEXT)
-        print(node.text.split("*"))
         new_nodes = split_nodes_delimiter([node], "*", TextType.ITALIC)
-        new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
+        print(f"Here are the new nodes: {new_nodes}")
+        # new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
         expected_list = [
             TextNode("This is ", TextType.TEXT),
             TextNode("italic text", TextType.ITALIC),
@@ -110,7 +111,7 @@ class TestSplitNodes(unittest.TestCase):
     def test_delim_bold_and_italic(self):
         node = TextNode("**bold** and *italic*", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
-        new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
+        # new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
         self.assertListEqual(
             [
                 TextNode("bold", TextType.BOLD),

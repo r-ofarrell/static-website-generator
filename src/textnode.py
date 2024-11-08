@@ -55,7 +55,11 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
 
         else:
             split_nodes = []
-            sections = node.text.split(delimiter)
+            print(delimiter)
+            print(f"Here is the text: {node.text}")
+            sections = re.split(fr"\{delimiter[0]}+(.*?)\{delimiter[0]}+", node.text)
+            print(f"Here are the sections: {sections}")
+            # sections = node.text.split(delimiter)
             if len(sections) % 2 == 0:
                 raise Exception("Invalid Markdown syntax: No matching symbols")
 
@@ -78,3 +82,7 @@ def extract_markdown_images(text: str) -> tuple:
 def extract_markdown_link(text: str) -> tuple:
     link_markdown = re.findall(r"\[([\w ]+)\]\((https:\/\/.*?\.[a-z\/@]+)\)", text)
     return link_markdown
+
+if __name__ == "__main__":
+    node = TextNode("This is `code x = 100` alright", TextType.TEXT)
+    split_nodes_delimiter([node], "`", TextType.CODE)
