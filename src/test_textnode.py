@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import unittest
-import re
 
-from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
+from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode
+from split_and_extract import split_nodes_delimiter, extract_markdown_images, extract_markdown_link, split_nodes_image, split_nodes_link
 
 
 class TestTextNode(unittest.TestCase):
@@ -95,6 +95,9 @@ class TestSplitNodes(unittest.TestCase):
 
     def test_italic_and_bold(self):
         node = TextNode("This is *italic text* and **bolded stuff** alright", TextType.TEXT)
+        # Bold must always be run first in order to properly split up nodes.
+        # Doing italic first will strip a * from the bold text, messing up the
+        # rest of the function.
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
         new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
         expected_list = [
@@ -109,6 +112,9 @@ class TestSplitNodes(unittest.TestCase):
 
     def test_delim_bold_and_italic(self):
         node = TextNode("**bold** and *italic*", TextType.TEXT)
+        # Bold must always be run first in order to properly split up nodes.
+        # Doing italic first will strip a * from the bold text, messing up the
+        # rest of the function.
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
         new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
         self.assertListEqual(
@@ -119,6 +125,74 @@ class TestSplitNodes(unittest.TestCase):
             ],
             new_nodes,
         )
+
+class TestExtracting(unittest.TestCase):
+    def test_extract_image(self):
+        image_markdown = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        extracted_image = extract_markdown_images(image_markdown)
+        expected_results = [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        self.assertListEqual(extracted_image, expected_results)
+
+    def test_extract_link(self):
+        link_markdown = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        extracted_link = extract_markdown_link(link_markdown)
+        expected_results = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
+
+    def text_no_image(self):
+        markdown = "This text has some obi wan kenobi stuff with a link(https://i.imgur.com/fJRm4Vk.jpeg)"
+        result = extract_markdown_images(markdown)
+        expected_results = []
+        self.assertListEqual(result, expected_results)
+
+    def text_no_link(self):
+        markdown = "This is text with a link to boot dev](https://www.boot.dev) and to youtube](https://www.youtube.com/@bootdotdev)"
+        result = extract_markdown_link(markdown)
+        expected_results = []
+        self.assertListEqual(result, expected_results)
+
+class TestSplitImagesAndLinks(unittest.TestCase):
+    def test_split_image(self):
+        node = TextNode("This is text with ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.IMAGE)
+        split_nodes = split_nodes_image([node])
+        expected = [
+            TextNode("This is text with ", TextType.TEXT),
+            TextNode(
+                "obi wan", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+            ),
+        ]
+        self.assertListEqual(split_nodes, expected)
+
+    def test_split_images(self):
+        node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.IMAGE)
+        split_nodes = split_nodes_image([node])
+        expected = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("rick roll", TextType.IMAGE, "https://i.imgur.com/aKaOqIh.gif"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode(
+                "obi wan", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+            ),
+        ]
+        self.assertListEqual(split_nodes, expected)
+
+    def test_split_links(self):
+        node = TextNode(
+                "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+                TextType.TEXT,
+            )
+        split_nodes = split_nodes_link([node])
+        new_nodes = split_nodes_link([node])
+        expected = [
+            TextNode("This is text with a link ", TextType.TEXT),
+            TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+            TextNode(" and ", TextType.TEXT),
+            TextNode(
+                "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+            ),
+        ]
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
