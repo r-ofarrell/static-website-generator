@@ -55,11 +55,15 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
 
         else:
             split_nodes = []
-            print(delimiter)
-            print(f"Here is the text: {node.text}")
-            sections = re.split(fr"\{delimiter[0]}+(.*?)\{delimiter[0]}+", node.text)
-            print(f"Here are the sections: {sections}")
-            # sections = node.text.split(delimiter)
+            sections = ""
+            if delimiter == "**":
+                to_split = re.sub(r"(^\*\*|\*\*|\*\*|\*\*$)", "#", node.text)
+                sections = to_split.split("#")
+            elif delimiter == "*":
+                to_split = re.sub(r"(^\*|\*|\*|\*$)", "#", node.text)
+                sections = to_split.split("#")
+            elif delimiter == "`":
+                sections = re.split(r"^`|`{1}|`{1}|`$", node.text)
             if len(sections) % 2 == 0:
                 raise Exception("Invalid Markdown syntax: No matching symbols")
 
