@@ -4,7 +4,7 @@ import unittest
 
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode
-from split_and_extract import split_nodes_delimiter, extract_markdown_images, extract_markdown_link, split_nodes_image, split_nodes_link, text_to_textnodes
+from split_and_extract import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 
 
 
@@ -136,7 +136,7 @@ class TestExtracting(unittest.TestCase):
 
     def test_extract_link(self):
         link_markdown = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
-        extracted_link = extract_markdown_link(link_markdown)
+        extracted_link = extract_markdown_links(link_markdown)
         expected_results = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
 
     def text_no_image(self):
@@ -147,13 +147,13 @@ class TestExtracting(unittest.TestCase):
 
     def text_no_link(self):
         markdown = "This is text with a link to boot dev](https://www.boot.dev) and to youtube](https://www.youtube.com/@bootdotdev)"
-        result = extract_markdown_link(markdown)
+        result = extract_markdown_links(markdown)
         expected_results = []
         self.assertListEqual(result, expected_results)
 
 class TestSplitImagesAndLinks(unittest.TestCase):
     def test_split_image(self):
-        node = TextNode("This is text with ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.IMAGE)
+        node = TextNode("This is text with ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.TEXT)
         split_nodes = split_nodes_image([node])
         expected = [
             TextNode("This is text with ", TextType.TEXT),
@@ -164,7 +164,7 @@ class TestSplitImagesAndLinks(unittest.TestCase):
         self.assertListEqual(split_nodes, expected)
 
     def test_split_images(self):
-        node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.IMAGE)
+        node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.TEXT)
         split_nodes = split_nodes_image([node])
         expected = [
             TextNode("This is text with a ", TextType.TEXT),
@@ -182,7 +182,6 @@ class TestSplitImagesAndLinks(unittest.TestCase):
                 TextType.TEXT,
             )
         split_nodes = split_nodes_link([node])
-        new_nodes = split_nodes_link([node])
         expected = [
             TextNode("This is text with a link ", TextType.TEXT),
             TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
@@ -191,6 +190,7 @@ class TestSplitImagesAndLinks(unittest.TestCase):
                 "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
             ),
         ]
+        self.assertListEqual(split_nodes, expected)
 
     # TODO Add more tests: no link present, no image present, errors in markdown
 
@@ -211,6 +211,39 @@ class TestTextToHTML(unittest.TestCase):
             TextNode("link", TextType.LINK, "https://boot.dev")
         ]
         self.assertListEqual(result, expected)
+
+    def test_text_with_all_the_things2(self):
+        to_process = "This is ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev) **text** with an *italic* word and a `code block`"
+        result = text_to_textnodes(to_process)
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+            TextNode(" ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+        ]
+        self.assertListEqual(result, expected)
+
+    def test_just_plain_text(self):
+        to_process = "This is just plain old text"
+        result = text_to_textnodes(to_process)
+        expected = [TextNode(to_process, TextType.TEXT)]
+        self.assertListEqual(result, expected)
+
+    def test_unclosed_image_exception(self):
+         to_process = "This is ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg and a [link](https://boot.dev) **text** with an *italic* word and a `code block`"
+         result = text_to_textnodes(to_process)
+         self.assertRaises(ValueError)
+
+
+
+        # TODO write more tests
+
 
 
 
