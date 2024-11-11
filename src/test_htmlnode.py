@@ -2,7 +2,6 @@ import unittest
 
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
-
 class TestHTMLNode(unittest.TestCase):
     def test_eq1(self):
         htmlnode1 = HTMLNode(
@@ -79,7 +78,7 @@ class TestHTMLNode(unittest.TestCase):
         repr_expected = "HTMLNode(<h1></h1>, I am a value, ['I have children'], None)"
         self.assertEqual(repr(htmlnode1), repr_expected)
 
-class TestHTMLNode(unittest.TestCase):
+class TestLeafNode(unittest.TestCase):
     def test_to_html_with_props(self):
         leaf = LeafNode("p", "LeafNode", {"class": "leaves"})
         expected_text = '<p class="leaves">LeafNode</p>'
@@ -137,6 +136,11 @@ class TestParentNode(unittest.TestCase):
         expected_text = '<ul class="leaves" target="_blank"><li>LeafNode1</li><li>LeafNode2</li></ul>'
         self.assertEqual(parent.to_html(), expected_text)
 
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
+
     def test_to_html_children_props(self):
         parent = ParentNode(
             "ul",
@@ -185,3 +189,13 @@ class TestParentNode(unittest.TestCase):
         )
         inequal_text = '<ul class="leaves" target="_blank"><li>LeafNode1</li><li>LeafNode2</li></ul>'
         self.assertNotEqual(parent.to_html(), inequal_text)
+
+    def test_to_html_heading(self):
+        child_nodes = [
+            LeafNode(None, "Here is the heading"),
+            LeafNode("b", "with some bolded text"),
+            LeafNode("i", "and some italic text as well")
+        ]
+        node = ParentNode("h1", child_nodes)
+        expected = "<h1>Here is the heading<b>with some bolded text</b><i>and some italic text as well</i></h1>"
+        self.assertEqual(node.to_html(), expected)
