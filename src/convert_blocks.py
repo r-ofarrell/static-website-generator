@@ -10,6 +10,7 @@ block_type_unordered_list = "unordered_list"
 block_type_ordered_list = "ordered_list"
 
 def markdown_to_block(markdown):
+    """Returns the individual blocks in a markdown file."""
     processed_markdown = markdown.strip().split("\n\n")
     blocks = []
     for line in processed_markdown:
@@ -22,6 +23,7 @@ def markdown_to_block(markdown):
 
 
 def block_to_block_type(markdown_block):
+    """Iterates through a block of markdown and returns the type of markdown."""
     lines = markdown_block.split("\n")
     if re.search(r"^#{1,6} \w", markdown_block):
         return block_type_heading

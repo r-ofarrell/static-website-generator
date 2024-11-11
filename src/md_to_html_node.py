@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from split_and_extract import text_to_textnodes
 from convert_blocks import (
@@ -25,12 +26,11 @@ def markdown_to_html_node(markdown):
     }
     for block in blocks:
         block_type = block_to_block_type(block)
+        if block_type == block_type_heading:
+            result = re.search(r"^(#{1,6})", block)
+            block_type_dict["heading"] = f"h{len(result.group())}"
         # TODO convert blocks to html first
         print(f"Here is the block type: {block_type}")
-        text_nodes = text_to_textnodes(block)
-        print(text_nodes)
-        new_node = ParentNode(block_type, text_nodes)
-        print(f"Here is the new node: {new_node}")
 
 
 """
