@@ -4,6 +4,7 @@ import re
 from textnode import TextType, TextNode
 
 def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) -> list:
+    """Takes a list of nodes and returns the extracted bold, italic, and code markdown"""
     new_nodes = []
 
     for node in old_nodes:
@@ -28,14 +29,17 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
     return new_nodes
 
 def extract_markdown_images(text: str) -> tuple:
+    """Regex to find all instances of markdown images in a string"""
     image_markdown = re.findall(r"\B!\[([\w ]+)\]\((https:\/\/.*?\.[\w+ .\/=&%]+)\)", text)
     return image_markdown
 
 def extract_markdown_links(text: str) -> tuple:
+    """Regex to find all instances of markdown links in a string"""
     link_markdown = re.findall(r"\B\[([\w ]+)\]\((https:\/\/.*?\.[\w\/@=&%]+)\)", text)
     return link_markdown
 
 def split_nodes_image(old_nodes):
+    """Takes a list of nodes and returns the extracted markdown images"""
     new_nodes = []
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
@@ -70,6 +74,7 @@ def split_nodes_image(old_nodes):
 
 
 def split_nodes_link(old_nodes):
+    """Takes a list of nodes and returns the extracted markdown links"""
     new_nodes = []
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
@@ -103,7 +108,8 @@ def split_nodes_link(old_nodes):
     return new_nodes
 
 
-def text_to_textnodes(text):
+def text_to_textnodes(text: str) -> list:
+    """Takes a string of text and returns a list of TextNodes based on inline markdown"""
     node = [TextNode(text, TextType.TEXT)]
     delimiters = {"**": TextType.BOLD, "*": TextType.ITALIC, "`": TextType.CODE}
     for delimiter, text_type in delimiters.items():

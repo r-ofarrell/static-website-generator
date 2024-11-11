@@ -2,6 +2,12 @@
 
 import re
 
+block_type_paragraph = "paragraph"
+block_type_heading = "heading"
+block_type_code = "code"
+block_type_quote = "quote"
+block_type_unordered_list = "unordered_list"
+block_type_ordered_list = "ordered_list"
 
 def markdown_to_block(markdown):
     processed_markdown = markdown.strip().split("\n\n")
@@ -16,37 +22,38 @@ def markdown_to_block(markdown):
 
 
 def block_to_block_type(markdown_block):
+    lines = markdown_block.split("\n")
     if re.search(r"^#{1,6} \w", markdown_block):
-        return "heading"
+        return block_type_heading
     if len(lines) == 1 and re.search(r"^`{3}.*`{3}$", markdown_block):
-        return "code"
+        return block_type_code
     if (
         len(lines) > 1
         and re.search(r"^`{3}", lines[0])
         and re.search(r"`{3}$", lines[-1])
     ):
-        return "code"
+        return block_type_code
     if re.search(r"^>", markdown_block):
         for line in lines:
             if not re.search(r"^>", line):
-                return "paragraph"
+                return block_type_paragraph
         return "quote"
     if re.search(r"^\* ", markdown_block):
         for line in lines:
             if not re.search(r"^\* ", line):
-                return "paragraph"
-        return "unordered_list"
+                return block_type_paragraph
+        return block_type_unordered_list
     if re.search(r"^- ", markdown_block):
         for line in lines:
             if not re.search(r"^- ", line):
-                return "paragraph"
-        return "unordered_list"
+                return block_type_paragraph
+        return block_type_unordered_list
     if re.search(r"^[0-9]+\. ", markdown_block):
         num = 1
         for line in lines:
             if not line.startswith(f"{num}. "):
-                return "paragraph"
+                return block_type_paragraph
             num += 1
-        return "ordered_list"
+        return block_type_ordered_list
 
-    return "paragraph"
+    return block_type_paragraph
