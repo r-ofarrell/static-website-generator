@@ -24,28 +24,14 @@ def markdown_to_html_node(markdown):
         "ordered_list": "ol",
         "paragraph": "p"
     }
-    parent_nodes = []
-    for block in blocks:
-        block_type = block_to_block_type(block)
-        children_nodes = text_to_children(block, block_type)
-        if block_type == block_type_heading:
-            result = re.search(r"^(#{1,6})", block)
-            heading_level = len(result.group())
-            heading_tag = f"h{heading_level}"
-            parent_node = ParentNode(heading_tag, children_nodes)
-        elif block_type == block_type_code:
-            code_node = ParentNode("code", children_nodes)
-            parent_node = ParentNode("pre", [code_node])
-        else:
-            parent_node = ParentNode(block_type_dict[block_type], children_nodes)
+    children_nodes = []
 
-        parent_nodes.append(parent_node)
-
-    div = ParentNode("div", parent_nodes)
+    div = ParentNode("div", children_nodes)
     return div
 
-def remove_block_level_md(block, block_type):
+def remove_block_level_md(block):
     new_block = ""
+    block_type = block_to_block_type(block)
     lines = block.split("\n")
     if block_type == block_type_heading:
         new_block = re.sub(r"^#{1,6} ", "", block)
@@ -66,16 +52,41 @@ def remove_block_level_md(block, block_type):
         for i in range(len(lines)):
             lines[i] = re.sub(r"^[0-9]+. ", "", lines[i])
 
-    new_block = "\n".join(lines)
+    new_block = " ".join(lines)
     return new_block
 
-def text_to_children(text, block_type):
-    html_nodes = []
-    new_text = remove_block_level_md(text, block_type)
+def text_to_children(text):
+    children_nodes = []
     text_nodes = text_to_textnodes(text)
     for node in text_nodes:
-        html_nodes.append(text_node_to_html_node(node))
-    return html_nodes
+        children_nodes.append(text_node_to_html_node(node))
+    return children_nodes
+
+# TODO create separate functions to process heading, paragraph,
+# blockquotes, code, unordered lists, and ordered lists
+
+def paragraph_to_html_node(block):
+    paragraph = remove_block_level_md(block)
+    children = text_to_children(paragraph)
+    return ParentNode(("p"), children)
+
+def heading_to_html_node(block):
+    if re.search(r"^#{7,}? ", block):
+        raise ValueError(f"Invalid heading level")
+    heading_level = re.search(r"^(#{1,6}) ", block)
+    text = remove_block_level_md(block)
+    children = text_to_children(text)
+    heading = f"h{len(heading_level.group(1))}"
+    return ParentNode(heading, children)
+
+def code_to_html(block):
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("Invalid code block")
+    text = remove_block_level_md(block)
+    children = text_to_children(text)
+    code = ParentNode("code", children)
+    return ParentNode("pre", [code])
+
 
 if __name__ == "__main__":
     block = """
@@ -92,9 +103,13 @@ With more paragraph.
 
     """
 blocks = markdown_to_block(block)
-print(f"Here are the blocks: {blocks}")
-for block in blocks:
-    stripped_block = remove_block_level_md(block, block_to_block_type(block))
-    print(stripped_block)
-    children_nodes = text_to_children(stripped_block, block_to_block_type(block))
-    print(f"Children: {children_nodes}")
+# print(f"Here are the blocks: {blocks}")
+# for block in blocks:
+#     stripped_block = remove_block_level_md(block, block_to_block_type(block))
+#     print(stripped_block)
+#     children_nodes = text_to_children(stripped_block)
+#     print(f"Children: {children_nodes}")
+
+stripped_block = remove_block_level_md(blocks[0])
+print(stripped_block)
+print(heading_to_html_node(blocks[0]))
