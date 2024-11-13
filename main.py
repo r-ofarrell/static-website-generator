@@ -12,7 +12,6 @@ def remove_contents_of_public(directory):
             item.unlink()
         else:
             remove_contents_of_public(item)
-            print(f"Item to remove: {item}")
             item.rmdir()
     return
 def copy_static_to_public(directory, destination):
@@ -22,12 +21,16 @@ def copy_static_to_public(directory, destination):
         if item.is_file():
             shutil.copy(item, destination_path)
         else:
-            copy_static_to_public(item, destination_path)
+            new_directory = destination_path.joinpath(item.name)
+            new_directory.mkdir()
+            copy_static_to_public(item, new_directory)
 
-    print(f"Final path: {directory_path}")
-    return ""
+    return
 
-    pass
+def main():
+    remove_contents_of_public("public")
+    copy_static_to_public("static", "public")
+
 
 if __name__ == "__main__":
-    copy_static_to_public("static", "practice")
+    main()
