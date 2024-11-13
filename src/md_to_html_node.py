@@ -17,43 +17,28 @@ from convert_blocks import (
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_block(markdown)
-    block_type_dict = {
-        "code": "code",
-        "quote": "blockquote",
-        "unordered_list": "ul",
-        "ordered_list": "ol",
-        "paragraph": "p"
-    }
     children_nodes = []
+    for block in blocks:
+        children_nodes.append(block_to_html_node(block))
 
     div = ParentNode("div", children_nodes)
     return div
 
-def remove_block_level_md(block):
-    new_block = ""
+def block_to_html_node(block):
     block_type = block_to_block_type(block)
-    lines = block.split("\n")
+    if block_type == block_type_paragraph:
+        return paragraph_to_html_node(block)
     if block_type == block_type_heading:
-        new_block = re.sub(r"^#{1,6} ", "", block)
-        return new_block
-    elif block_type == block_type_code:
-        for i in range(len(lines)):
-            if i == 0:
-                lines[i] = lines[i].rstrip("```")
-            elif i == len(lines) - 1:
-                lines[i] = lines[i].lstrip("```")
-    elif block_type == block_type_quote:
-        for i in range(len(lines)):
-            lines[i] = lines[i].lstrip("> ")
-    elif block_type == block_type_unordered_list:
-        for i in range(len(lines)):
-            lines[i] = re.sub(r"^[-|*] ", "", lines[i])
-    elif block_type == block_type_ordered_list:
-        for i in range(len(lines)):
-            lines[i] = re.sub(r"^[0-9]+. ", "", lines[i])
-
-    new_block = " ".join(lines)
-    return new_block
+        return heading_to_html_node(block)
+    if block_type == block_type_code:
+        return code_to_html_node(block)
+    if block_type == block_type_quote:
+        return quote_to_html_node(block)
+    if block_type == block_type_unordered_list:
+        return unordered_list_to_html_node(block)
+    if block_type == block_type_ordered_list:
+        return ordered_list_to_html_node(block)
+    raise ValueError("Invalid block type")
 
 def text_to_children(text):
     children_nodes = []
@@ -62,30 +47,59 @@ def text_to_children(text):
         children_nodes.append(text_node_to_html_node(node))
     return children_nodes
 
-# TODO create separate functions to process heading, paragraph,
-# blockquotes, code, unordered lists, and ordered lists
-
 def paragraph_to_html_node(block):
-    paragraph = remove_block_level_md(block)
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
     children = text_to_children(paragraph)
     return ParentNode(("p"), children)
 
 def heading_to_html_node(block):
     if re.search(r"^#{7,}? ", block):
-        raise ValueError(f"Invalid heading level")
-    heading_level = re.search(r"^(#{1,6}) ", block)
-    text = remove_block_level_md(block)
-    children = text_to_children(text)
-    heading = f"h{len(heading_level.group(1))}"
+        raise ValueError(f"Invalid HTML: Invalid heading level")
+    get_heading_level = re.search(r"^(#{1,6}) ", block)
+    heading_level = len(get_heading_level.group(1))
+    space_after_heading = 1
+    text_with_heading_symbols_removed = block[heading_level + space_after_heading]
+    children = text_to_children(text_with_heading_symbols_removed)
+    heading = f"h{heading_level}"
     return ParentNode(heading, children)
 
-def code_to_html(block):
+def code_to_html_node(block):
     if not block.startswith("```") or not block.endswith("```"):
-        raise ValueError("Invalid code block")
-    text = remove_block_level_md(block)
-    children = text_to_children(text)
+        raise ValueError("Invalid HTML: Code block not opened or closed")
+    text_with_codeblock_symbols_removed = block[4:-3]
+    children = text_to_children(text_with_codeblock_symbols_removed)
     code = ParentNode("code", children)
     return ParentNode("pre", [code])
+
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("Invalid HTML: Missing quote markdown")
+        new_lines.append(line.lstrip(">").strip())
+    text_with_quote_ticks_removed = " ".join(new_lines)
+    children = text_to_children(text_with_quote_ticks_removed)
+    return ParentNode("blockquote", children)
+
+def unordered_list_to_html_node(block):
+    list_items = block.split("\n")
+    html_items = []
+    for item in list_items:
+        text_without_ul_markdown = item[2:]
+        children = text_to_children(text_without_ul_markdown)
+        htlm_items.append(ParentNode("li", children))
+    return ParentNode("ul", html_items)
+
+def ordered_list_to_html_node(block):
+    list_items = block.split("\n")
+    html_items = []
+    for item in list_items:
+        text_without_ol_markdown = re.sub(r"^[0-9]+\. ", "", item)
+        children = text_to_children(text_without_ol_markdown)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ol", html_items)
 
 
 if __name__ == "__main__":
@@ -102,14 +116,5 @@ With more paragraph.
 3. Point *three*
 
     """
-blocks = markdown_to_block(block)
-# print(f"Here are the blocks: {blocks}")
-# for block in blocks:
-#     stripped_block = remove_block_level_md(block, block_to_block_type(block))
-#     print(stripped_block)
-#     children_nodes = text_to_children(stripped_block)
-#     print(f"Children: {children_nodes}")
 
-stripped_block = remove_block_level_md(blocks[0])
-print(stripped_block)
-print(heading_to_html_node(blocks[0]))
+print(markdown_to_html_node(block))
