@@ -59,7 +59,7 @@ def heading_to_html_node(block):
     get_heading_level = re.search(r"^(#{1,6}) ", block)
     heading_level = len(get_heading_level.group(1))
     space_after_heading = 1
-    text_with_heading_symbols_removed = block[heading_level + space_after_heading]
+    text_with_heading_symbols_removed = block[heading_level + space_after_heading:]
     children = text_to_children(text_with_heading_symbols_removed)
     heading = f"h{heading_level}"
     return ParentNode(heading, children)
@@ -68,7 +68,9 @@ def code_to_html_node(block):
     if not block.startswith("```") or not block.endswith("```"):
         raise ValueError("Invalid HTML: Code block not opened or closed")
     text_with_codeblock_symbols_removed = block[4:-3]
-    children = text_to_children(text_with_codeblock_symbols_removed)
+    lines = text_with_codeblock_symbols_removed.split("\n")
+    lines = " ".join(lines).strip()
+    children = text_to_children(lines)
     code = ParentNode("code", children)
     return ParentNode("pre", [code])
 
@@ -89,7 +91,7 @@ def unordered_list_to_html_node(block):
     for item in list_items:
         text_without_ul_markdown = item[2:]
         children = text_to_children(text_without_ul_markdown)
-        htlm_items.append(ParentNode("li", children))
+        html_items.append(ParentNode("li", children))
     return ParentNode("ul", html_items)
 
 def ordered_list_to_html_node(block):
@@ -100,21 +102,3 @@ def ordered_list_to_html_node(block):
         children = text_to_children(text_without_ol_markdown)
         html_items.append(ParentNode("li", children))
     return ParentNode("ol", html_items)
-
-
-if __name__ == "__main__":
-    block = """
-# Here is the heading
-
-Here is some paragraph.
-With more paragraph.
-
-> A quote looks **good** here
-
-1. Point *one*
-2. Point *two*
-3. Point *three*
-
-    """
-
-print(markdown_to_html_node(block))
