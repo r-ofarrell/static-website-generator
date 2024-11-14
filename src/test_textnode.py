@@ -2,7 +2,7 @@
 
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node
+from src.textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import HTMLNode, LeafNode
 from split_and_extract import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 
@@ -46,25 +46,26 @@ class TestTextNode(unittest.TestCase):
         )
 
 class TestTextNodeToHTMLNode(unittest.TestCase):
-    def test_textype_conversion(self):
+    def test_texttype_conversion(self):
         node = TextNode("This is a text", TextType.BOLD, "https://www.boot.dev")
         html_node = text_node_to_html_node(node)
-        self.assertIsInstance(html_node, LeafNode)
+        self.assertEqual(html_node.tag, "b")
+        self.assertEqual(html_node.value, "This is a text")
 
-    def test_textype_bold(self):
+    def test_texttype_bold(self):
         node = TextNode("This is bold", TextType.BOLD, "https://www.boot.dev")
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "b")
         self.assertEqual(html_node.value, "This is bold")
 
-    def test_textype_img(self):
+    def test_texttype_img(self):
         node = TextNode("This is an image", TextType.IMAGE, "https://www.boot.dev")
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "img")
         self.assertEqual(html_node.value, "")
         self.assertEqual(html_node.props, {"src": node.url, "alt": ""})
 
-    def test_textype_link(self):
+    def test_texttype_link(self):
         node = TextNode("This is a link", TextType.LINK, "https://www.boot.dev")
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "a")

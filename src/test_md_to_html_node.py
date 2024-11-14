@@ -5,7 +5,7 @@ from md_to_html_node import (
     markdown_to_html_node,
     markdown_to_block,
 )
-from htmlnode import HTMLNode, ParentNode, LeafNode
+from src.htmlnode import HTMLNode, ParentNode, LeafNode
 
 class TestParagraphToHTMLNode(unittest.TestCase):
     def markdown_to_block(self):

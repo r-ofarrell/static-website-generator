@@ -2,7 +2,7 @@
 
 import re
 from enum import Enum
-from htmlnode import LeafNode
+from src.htmlnode import LeafNode
 
 class TextType(Enum):
     TEXT = "text"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from textnode import TextType, TextNode
+from src.textnode import TextType, TextNode
 
 def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) -> list:
     """Takes a list of nodes and returns the extracted bold, italic, and code markdown"""
@@ -35,7 +35,7 @@ def extract_markdown_images(text: str) -> tuple:
 
 def extract_markdown_links(text: str) -> tuple:
     """Regex to find all instances of markdown links in a string"""
-    link_markdown = re.findall(r"\B\[([\w ]+)\]\((https:\/\/.*?\.[\w\/@=&%]+)\)", text)
+    link_markdown = re.findall(r"(^| )(\[[\w ]+\]\([\w.:/$@&]+\))", text)
     return link_markdown
 
 def split_nodes_image(old_nodes):
@@ -88,16 +88,17 @@ def split_nodes_link(old_nodes):
             continue
 
         for link in images_and_links:
-            sections = original_text.split(f"[{link[0]}]({link[1]})")
+            name_and_url = re.search(r"\[([\w ]+)\]\(([\w .:/$%&@]+)\)", link[1])
+            sections = original_text.split(f"[{name_and_url.group(1)}]({name_and_url.group(2)})")
             if len(sections) != 2:
                 raise ValueError("Invalid markdown: link tag not closed")
             if sections[0] != "":
                 new_nodes.append(TextNode(sections[0], TextType.TEXT))
             new_nodes.append(
                 TextNode(
-                    link[0],
+                    name_and_url.group(1),
                     TextType.LINK,
-                    link[1],
+                    name_and_url.group(2),
                 )
             )
 

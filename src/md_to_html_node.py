@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import re
-from htmlnode import HTMLNode, ParentNode, LeafNode
-from textnode import text_node_to_html_node
-from split_and_extract import text_to_textnodes
-from convert_blocks import (
+from src.htmlnode import HTMLNode, ParentNode, LeafNode
+from src.textnode import text_node_to_html_node
+from src.split_and_extract import text_to_textnodes
+from src.convert_blocks import (
     markdown_to_block,
     block_to_block_type,
     block_type_paragraph,
