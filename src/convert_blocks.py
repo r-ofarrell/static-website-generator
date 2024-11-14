@@ -37,7 +37,7 @@ def block_to_block_type(markdown_block):
         return block_type_code
     if re.search(r"^>", markdown_block):
         for line in lines:
-            if not re.search(r"^>", line):
+            if not re.search(r"^> ", line):
                 return block_type_paragraph
         return "quote"
     if re.search(r"^\* ", markdown_block):

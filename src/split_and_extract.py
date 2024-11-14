@@ -30,7 +30,7 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
 
 def extract_markdown_images(text: str) -> tuple:
     """Regex to find all instances of markdown images in a string"""
-    image_markdown = re.findall(r"\B!\[([\w ]+)\]\((https:\/\/.*?\.[\w+ .\/=&%]+)\)", text)
+    image_markdown = re.findall(r"\B!\[([\w ]+)\]\(([\w+ .\/=&%@!:]+)\)", text)
     return image_markdown
 
 def extract_markdown_links(text: str) -> tuple:

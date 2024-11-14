@@ -80,9 +80,10 @@ def quote_to_html_node(block):
     for line in lines:
         if not line.startswith(">"):
             raise ValueError("Invalid HTML: Missing quote markdown")
-        new_lines.append(line.lstrip(">").strip())
-    text_with_quote_ticks_removed = " ".join(new_lines)
-    children = text_to_children(text_with_quote_ticks_removed)
+        stripped_line = line.strip(">")
+        new_lines.append(stripped_line.strip())
+    text_with_quote_md_removed = " ".join(new_lines)
+    children = text_to_children(text_with_quote_md_removed)
     return ParentNode("blockquote", children)
 
 def unordered_list_to_html_node(block):

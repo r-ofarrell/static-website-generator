@@ -56,12 +56,44 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, 'w', encoding='utf-8') as d:
         d.write(template_copy)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    print(f"Generating page from {dir_path_content} to {dest_dir_path} using {template_path}")
+
+    content_directory_path = Path(dir_path_content).absolute()
+    template_file_path = Path(template_path).absolute()
+    destination_directory_path = Path(dest_dir_path).absolute()
+
+    with template_file_path.open() as t:
+        template_copy = t.read()
+
+    for item in content_directory_path.iterdir():
+        if re.search(r".+\.md", item.name):
+            with item.open() as i:
+                markdown = i.read()
+            html_nodes = markdown_to_html_node(markdown)
+            html = html_nodes.to_html()
+            heading = extract_title(markdown)
+            template_copy = re.sub(r"{{ Title }}", heading, template_copy)
+            template_copy = re.sub(r"{{ Content }}", html, template_copy)
+            html_filename = item.name[:-3] + ".html"
+            destination_directory_path.touch(html_filename)
+            html_path = destination_directory_path.joinpath(html_filename)
+            html_path.write_text(template_copy)
+
+        elif item.is_dir():
+            new_directory = destination_directory_path.joinpath(item.name)
+            if not new_directory.exists():
+                new_directory.mkdir()
+            generate_pages_recursive(item, template_file_path, new_directory)
+
+    return
+
 
 
 def main():
     remove_contents_of_public("public")
     copy_static_to_public("static", "public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 
 if __name__ == "__main__":
